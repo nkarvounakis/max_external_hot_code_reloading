@@ -2,6 +2,10 @@
 # Max External Hot Code Reloading
 
 
+https://github.com/NickKarvounakis/max_external_hot_code_reloading/assets/41171766/0c9e2b4c-122d-4995-a4f0-921d490a9188
+
+
+
 ### The Issue
   Externals in Max, face a limitation: Max locks them upon loading, preventing modifications unless the entire Max environment is reloaded.
 
