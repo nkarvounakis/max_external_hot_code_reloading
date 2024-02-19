@@ -4,8 +4,8 @@ cd /D "%~dp0"
 
 :: Required Paths
 :: Relative to /build in case of relative paths
-set MaxSDKPath=..\..\max-sdk
-set OutputPath=..\
+set MaxSDKPath=..\..\mystuff\max-sdk
+set OutputPath=.\
 
 :: Include Paths for Headers
 set IncludePaths=/I %MaxSDKPath%\source\max-sdk-base\c74support\max-includes  
@@ -35,18 +35,22 @@ IF NOT EXIST build mkdir build
 pushd build
 
 :: Microsoft locks the pdb (sigh), we'll have to create a new one every single time if we want debuggers like visual studio to properly work
+set lockName=%OutputPath%simplereload_lock.tmp
 del *.pdb > NUL 2> NUL
-echo WAITING FOR PDB > lock.tmp
+echo WAITING FOR PDB > %lockName%
 set  RandomPDBName=simplereload_%random%.pdb
-
-:: Max Translation Unit
-cl %MaxPlatformCompilerFlags%  /LD ..\code\max_simplereload.cpp -Fmsimplereload.map /Fe: %OutputPath%simplereload.mxe64 /link  %MaxPlatformLinkerFlags% /IMPLIB:max_simplereload.lib -PDB:max_simplereload.pdb
 
 :: Platform Independent Translation Unit
 cl %CommonCompilerFlags%  /LD ..\code\simplereload.cpp    -Fmsimplereload_dll.map  /Fe: %OutputPath%simplereload.dll /link %CommonLinkerFlags%  /IMPLIB:simplereload.lib  -PDB:%RandomPDBName% %dll_link%
 
+del %lockName%
+
+:: Max Translation Unit
+cl %MaxPlatformCompilerFlags%  /LD ..\code\max_simplereload.cpp -Fmsimplereload.map /Fe: %OutputPath%simplereload.mxe64 /link  %MaxPlatformLinkerFlags% /IMPLIB:max_simplereload.lib -PDB:max_simplereload.pdb
+
+
 echo Compilation Completed
 
-del lock.tmp
+
 
 popd

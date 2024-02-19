@@ -78,20 +78,13 @@ static void simplethread_qfn(t_simplereload *x){}
 static void 
 CreateDLLObserverThread(t_simplereload *x)
 {
-	post("task!\n");
+	// post("task!\n");
 	StopDLLObserverThread(x);
 	if(!x->x_systhread) {
-		post("starting a new thread");
+		post("Starting DLL Observer Thread");
 		systhread_create((method) DLLObserverThread, x, 0, 0, 0, &x->x_systhread);
 	}
-
 }
-
-static int
-AscendingRampWrapped(double Ramp, double PrevSample) {
-	return (Ramp - PrevSample < 0.0) ? 1 : 0;
-}
-
 
 static void 
 MaxDSP64Perform(t_simplereload *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
@@ -99,7 +92,6 @@ MaxDSP64Perform(t_simplereload *x, t_object *dsp64, double **ins, long numins, d
 	x->Callbacks->ObjectDspRoutine(&x->State, ins, outs, sampleframes);
 }
 
-// registers a function for the signal chain in Max
 static void 
 MaxDSP64Callback(t_simplereload *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
@@ -133,6 +125,8 @@ MaxInitClassCallback(t_symbol *s, long argc, t_atom *argv)
 		dsp_setup((t_pxobject *)x, 2);
 		outlet_new((t_object *)x, "signal");
 		outlet_new((t_object *)x, "signal");
+		outlet_new((t_object *)x, "signal");
+
 
 		x->x_qelem = qelem_new(x,(method)simplethread_qfn);
 

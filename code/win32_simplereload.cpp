@@ -9,6 +9,8 @@ struct win32_dll_data {
 
 static char SourceDLLPath[MAX_PATH];
 static char TempDLLPath[MAX_PATH];
+static char LockPath[MAX_PATH];
+
 static win32_dll_data Win32DLLData = {};
 
 static DSP_ROUTINE(DspPerformStub) {}
@@ -19,11 +21,10 @@ Win32GetLastWriteTime(char *FileName) {
 	FILETIME LastWriteTime = {};
 
 	WIN32_FIND_DATA FindData;
-	HANDLE FileHandle = FindFirstFileA(FileName, (LPWIN32_FIND_DATAA)&FindData);
-	if(FileHandle != INVALID_HANDLE_VALUE) {
+	if(GetFileAttributesEx(FileName, GetFileExInfoStandard, &FindData)) {
 		LastWriteTime = FindData.ftLastWriteTime;
-		FindClose(FileHandle);
-	} 
+	}
+
 	return LastWriteTime;
 }
 
@@ -40,25 +41,24 @@ WIN32UnloadDynamicCode() {
 
 static void
 WIN32LoadDynamicCode() {
-		Win32DLLData.LastWriteTime = Win32GetLastWriteTime(SourceDLLPath);
-		CopyFileA(SourceDLLPath, TempDLLPath, FALSE);
-		HMODULE  DynamicCodeDLL = LoadLibraryA(TempDLLPath);
-		if(DynamicCodeDLL) {
-			Win32DLLData.DynamicCodeDLL = (DynamicCodeDLL);
+	Win32DLLData.LastWriteTime = Win32GetLastWriteTime(SourceDLLPath);
+	CopyFileA(SourceDLLPath, TempDLLPath, FALSE);
+	Win32DLLData.DynamicCodeDLL = LoadLibraryA(TempDLLPath);
+	if(Win32DLLData.DynamicCodeDLL) {
 
-			Win32DLLData.callbacks.ObjectDspRoutine = (custom_dsp_perform*)GetProcAddress(DynamicCodeDLL, "DspPerform");
-			Win32DLLData.callbacks.ResetCounterRoutine = (reset_counter*)GetProcAddress(DynamicCodeDLL, "ResetCounterSignal");
+		Win32DLLData.callbacks.ObjectDspRoutine = (custom_dsp_perform*)GetProcAddress(Win32DLLData.DynamicCodeDLL, "DspPerform");
+		Win32DLLData.callbacks.ResetCounterRoutine = (reset_counter*)GetProcAddress(Win32DLLData.DynamicCodeDLL, "ResetCounterSignal");
 
-			if(!Win32DLLData.callbacks.ObjectDspRoutine) Win32DLLData.callbacks.ObjectDspRoutine = DspPerformStub;
-		}
+		if(!Win32DLLData.callbacks.ObjectDspRoutine) Win32DLLData.callbacks.ObjectDspRoutine = DspPerformStub;
+	}
 }
 
 RELOAD_DLL(Win32CheckAndReloadDynamicCode) {
   FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceDLLPath);
-
-  if(CompareFileTime(&NewDLLWriteTime, &Win32DLLData.LastWriteTime) != 0) {
+	WIN32_FILE_ATTRIBUTE_DATA Ignored;
+  if(CompareFileTime(&NewDLLWriteTime, &Win32DLLData.LastWriteTime) != 0 && !GetFileAttributesEx(LockPath, GetFileExInfoStandard, &Ignored)) {
     WIN32UnloadDynamicCode();
-    WIN32LoadDynamicCode();
+		WIN32LoadDynamicCode();
     return 1;
   }
   return 0;
@@ -137,6 +137,15 @@ Win32BuildDLLFilePaths(HMODULE ModuleRef) {
 							StringLength(TempDllName), TempDllName,
 							sizeof(TempDLLPath), TempDLLPath);
 
-	post("DLL Path: %s", SourceDLLPath);
-	post("Temp Path: %s", TempDLLPath);
+	char LockName[MAX_PATH];
+	CatStrings(ExternalNameSizeWithoutExt + 1, Mxe64Name,
+						StringLength("_lock.tmp"), "_lock.tmp",
+						sizeof(LockName), LockName);
+	CatStrings(OnePastLastMxe64FileNameSlash - Mxe64FilePath, Mxe64FilePath,
+							StringLength(LockName), LockName,
+							sizeof(LockPath), LockPath);
+
+	// post("DLL Path: %s", SourceDLLPath);
+	// post("Temp Path: %s", TempDLLPath);
+	// post("Lock Path: %s", LockPath);
 }

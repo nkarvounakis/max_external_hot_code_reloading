@@ -3,36 +3,36 @@
 
 
 ### The Issue
-  Externals in Max, face a limitation: Max locks them upon loading, preventing modifications unless the entire Max environment is reloaded, often causing significant overhead.
+  Externals in Max, face a limitation: Max locks them upon loading, preventing modifications unless the entire Max environment is reloaded.
 
 For small externals  this is most of the time fine as the time spent reloading is often times not all that significant.
-This becomes a major hindrance for larger, more dynamic projects where frequent reloading leads to increased friction and makes real-time algorithm fine-tuning impossible (much like you would a expect in a scripting language like)
+This becomes a major hindrance for larger, more dynamic projects where the time spent reloading significantly increases.
 
 ### The Solution
-This example achieves the desired behaviour by instead of compiling the external monolithically, splitting the external into two translation units
+This example achieves the desired behaviour by instead of compiling the external monolithically, splitting it's functionality into two translation units.
 
 * Max Platform Layer (max_simplereload.cpp):
-  Compiled as a Max-specific .mxe64 external and locked by Max.
+  The .mxe64 external to be read and locked by Max.
   Uses only Max platform code for OS independence.
 * Platform Independent Layer (simplereload.cpp):
-  Dynamically loaded as a .dll file.
+  the .dll to be read by the external.
   Holds platform-independent code, freely modifiable without Max interference.
 
-#### State Preservation and Key Mechanisms
+#### Key Mechanisms
 * Memory Reservation: The Max platform layer reserves memory in its object structure and passes necessary data to the platform-independent layer.
-* Unloading and Swapping: When platform-independent code re-compiles, the .dll is unloaded, rebuilt, and reloaded, seamlessly replacing the previous code with the new version while using the same reserved memory,ultimately preserving state.
+* Unloading and Swapping: When platform-independent code re-compiles, the .dll is unloaded, rebuilt, and reloaded, seamlessly replacing the previous code with the new version while using the same reserved memory.
 
 ##### Caveats
-  * Max Object Class Changes: If the Max object class itself undergoes structural changes (added or removed members), memory might get affected, requiring a Max restart. This is often not an issue as development focuses on implementation rather than frequent class structure modifications.
-  * Static: You can't use static variables globally or in functions the platform-independent file
+  * Max Object Class Changes: If the Max object class itself undergoes structural changes (added or removed members), the memory layout might get affected, requiring a Max restart.
+  * Static: You can't use static variables globally or in functions in the platform-independent file
   * Function Pointers: You can't use function pointers to directly reference functions defined in DLL. The Whole referencing has to happen through GetProcAddress  (as demonstrated in the example), and never directly.
 
 
 #### Benefits and Versatility:
   * Instantaneous Recompiling: Changes in the platform-independent code take effect immediately without requiring Max restarts.
-  * Real-Time Algorithm Modification: This enables experimentation and fine-tuning algorithms in real time, much like you would expect in a scripting language.
-  * Platform Independence: The scheme supports multiple operating systems with appropriate os-specific implementations of the reloading mechanism.
-  * Code Reusability: By creating platform-specific versions like juce_simplemsp.cpp, the core platform-independent code becomes reusable across platforms like juce etc.
+  * Real-Time Algorithm Modification: This enables experimentation and fine-tuning algorithms in real time, much like in a scripting languages.
+  * Platform Independence: Multiple operating systems support with appropriate os-specific implementations of the reloading mechanism.
+  * Code Reusability: By creating other platform-specific versions (ex: juce_simplereload.cpp), the core platform-independent code becomes reusable across multiple platforms.
 
 ## Development Setup Instructions
 ### 1. Installing the Required Tools (MSVC & Windows SDK)
@@ -44,7 +44,7 @@ the Windows SDK and the MSVC compiler and linker.
 You could use OSX too, but you'll have to implement the OSX layer / build script yourself.
 
 Before Compiling, you have to set the following variables in the build.bat file
-a) the path of the max SDK in your computer 
+a) the max SDK path
 ```
   set MaxSDKPath=D:\patches\max-sdk
 ```
@@ -104,4 +104,4 @@ Compilation Completed
 If everything worked correctly, there will be a `build` folder in the root
 level of the codebase, and will contain the output files `simplereload.mxe64` `simplereload.dll` `simplereload_temp.dll` (unless you have specified another output path). 
 
-These three files have to be visible by max and in the same path at all times for the external to work. Any changes to simplenoise.cpp should by instantly reflected in the running external (upon re-compiling).
+These three files have to be visible by max and in the same path at all times for the external to work. Any changes to simplenoise.cpp should be instantly reflected in the running external (upon re-compiling).
