@@ -108,4 +108,4 @@ Compilation Completed
 If everything worked correctly, there will be a `build` folder in the root
 level of the codebase, and will contain the output files `simplereload.mxe64` `simplereload.dll` `simplereload_temp.dll` (unless you have specified another output path). 
 
-These three files have to be visible by max and in the same path at all times for the external to work. Any changes to simplenoise.cpp should be instantly reflected in the running external (upon re-compiling).
+These three files have to be visible by max and in the same path at all times for the external to work. Any changes to simplereload.cpp should be instantly reflected in the running external (upon re-compiling).
