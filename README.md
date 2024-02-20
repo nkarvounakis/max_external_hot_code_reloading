@@ -2,6 +2,10 @@
 # Max External Hot Code Reloading
 
 
+https://github.com/NickKarvounakis/max_external_hot_code_reloading/assets/41171766/0c9e2b4c-122d-4995-a4f0-921d490a9188
+
+
+
 ### The Issue
   Externals in Max, face a limitation: Max locks them upon loading, preventing modifications unless the entire Max environment is reloaded.
 
@@ -104,4 +108,4 @@ Compilation Completed
 If everything worked correctly, there will be a `build` folder in the root
 level of the codebase, and will contain the output files `simplereload.mxe64` `simplereload.dll` `simplereload_temp.dll` (unless you have specified another output path). 
 
-These three files have to be visible by max and in the same path at all times for the external to work. Any changes to simplenoise.cpp should be instantly reflected in the running external (upon re-compiling).
+These three files have to be visible by max and in the same path at all times for the external to work. Any changes to simplereload.cpp should be instantly reflected in the running external (upon re-compiling).
