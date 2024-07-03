@@ -25,7 +25,7 @@ This example achieves the desired behaviour by instead of compiling the external
 
 ##### Caveats
   * Max Object Class Changes: If the Max object class itself undergoes structural changes (added or removed members), the memory layout might get affected, requiring a Max restart.
-  * Static: static variables globally or in functions in the platform-independent file will be resettled upon recompiling 
+  * Static: static variables globally or in functions in the platform-independent file will be resetted upon recompiling 
   * Function Pointers: You can't use function pointers to directly reference functions defined in DLL. The Whole referencing has to happen through GetProcAddress  (as demonstrated in the example), and never directly.
 
 
